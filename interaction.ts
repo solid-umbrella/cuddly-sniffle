@@ -90,7 +90,7 @@ serve({
                     hoist: true,
                     mentionable: true,
                 };
-                const roleResponse = await makeAuthenticatedRequest(`/guilds/${interaction.data.guild_id}/roles`, "POST", rolePayload);
+                const roleResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/roles`, "POST", rolePayload);
 
                 if (roleResponse.status >= 400) {
                     return json(generateErrorMessage("creating role", await roleResponse.text()));
@@ -99,7 +99,7 @@ serve({
                 const { id } = await roleResponse.json();
                 
                 const positionPayload: RESTPatchAPIGuildRolePositionsJSONBody = [{ id, position: rolePosition }];
-                const positionResponse = await makeAuthenticatedRequest(`/guilds/${interaction.data.guild_id}/roles/${id}/positions`, "PATCH", positionPayload);
+                const positionResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/roles/${id}/positions`, "PATCH", positionPayload);
                 if (positionResponse.status >= 400) {
                     return json(generateErrorMessage("updating role position", await positionResponse.text()));
                 }
@@ -123,7 +123,7 @@ serve({
                         },
                     ],
                 };
-                const channelResponse = await makeAuthenticatedRequest(`/guilds/${interaction.data.guild_id}/channels`, "POST", channelPayload);
+                const channelResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/channels`, "POST", channelPayload);
                 if (channelResponse.status >= 400) {
                     return json(generateErrorMessage("creating channel", await channelResponse.text()));
                 }
