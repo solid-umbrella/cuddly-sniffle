@@ -43,7 +43,7 @@ await createCommand({
             required: true,
         },
     ],
-    default_member_permissions: "268435472",
+    default_member_permissions: "0",
 });
 
 await createCommand({
