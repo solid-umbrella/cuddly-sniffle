@@ -99,7 +99,7 @@ serve({
                 const { id } = await roleResponse.json();
                 
                 const positionPayload: RESTPatchAPIGuildRolePositionsJSONBody = [{ id, position: rolePosition }];
-                const positionResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/roles/${id}/positions`, "PATCH", positionPayload);
+                const positionResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/roles`, "PATCH", positionPayload);
                 if (positionResponse.status >= 400) {
                     return json(generateErrorMessage("updating role position", await positionResponse.text()));
                 }
