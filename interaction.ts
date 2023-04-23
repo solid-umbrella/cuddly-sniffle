@@ -131,7 +131,7 @@ serve({
                 const payload: APIInteractionResponse = {
                     type: InteractionResponseType.ChannelMessageWithSource,
                     data: {
-                        content: `Created role ${rolename ?? channelname} and channel ${channelname}`,
+                        content: `Created role ${rolename ?? channelname} and channel ${channelname} (note that voice channels were not updated)`,
                     },
                 };
 
