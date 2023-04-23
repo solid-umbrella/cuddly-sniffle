@@ -1,26 +1,15 @@
 import "https://deno.land/std@0.182.0/dotenv/load.ts";
-import { APIApplicationCommand } from "https://raw.githubusercontent.com/discordjs/discord-api-types/main/deno/v10.ts";
+import { APIApplicationCommand, ApplicationCommandOptionType, ApplicationCommandType } from "https://raw.githubusercontent.com/discordjs/discord-api-types/main/deno/v10.ts";
+import { makeAuthenticatedRequest } from "./utils.ts";
 
 if (!Deno.env.get("APPLICATION_ID")) {
     throw new Error("APPLICATION_ID environment variable must be set");
 }
 
-if (!Deno.env.get("BOT_TOKEN")) {
-    throw new Error("BOT_TOKEN environment variable must be set");
-}
-
 const applicationID = Deno.env.get("APPLICATION_ID")!;
-const botToken = Deno.env.get("BOT_TOKEN")!;
 
 async function createCommand(command: Omit<APIApplicationCommand, "id" | "application_id" | "version">) {
-    const response = await fetch(`https://discord.com/api/v10/applications/${applicationID}/commands`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bot ${botToken}`,
-        },
-        body: JSON.stringify(command),
-    });
+    const response = await makeAuthenticatedRequest(`/applications/${applicationID}/commands`, "POST", command);
 
     if (response.status >= 400) {
         console.error(await response.json());
@@ -32,6 +21,42 @@ async function createCommand(command: Omit<APIApplicationCommand, "id" | "applic
 await createCommand({
     name: "hello",
     description: "obligatory hello world command",
-    type: 1,
+    type: ApplicationCommandType.ChatInput,
     default_member_permissions: "0",
+});
+
+await createCommand({
+    name: "newctf",
+    description: "make a new ctf channel/roles",
+    type: ApplicationCommandType.ChatInput,
+    options: [
+        {
+            name: "channelname",
+            description: "Desired channel name",
+            type: ApplicationCommandOptionType.String,
+            required: true,
+        },
+        {
+            name: "rolename",
+            description: "Desired role name",
+            type: ApplicationCommandOptionType.String,
+            required: false,
+        },
+    ],
+    default_member_permissions: "268435472",
+});
+
+await createCommand({
+    name: "archivectf",
+    description: "archive a ctf",
+    type: ApplicationCommandType.ChatInput,
+    options: [
+        {
+            name: "channelname",
+            description: "Channel to archive",
+            type: ApplicationCommandOptionType.Channel,
+            required: true,
+        },
+    ],
+    default_member_permissions: "268435472",
 });
