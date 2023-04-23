@@ -40,7 +40,7 @@ await createCommand({
             name: "rolename",
             description: "Desired role name",
             type: ApplicationCommandOptionType.String,
-            required: false,
+            required: true,
         },
     ],
     default_member_permissions: "268435472",
