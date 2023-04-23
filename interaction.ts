@@ -1,7 +1,7 @@
 import "https://deno.land/std@0.182.0/dotenv/load.ts";
 import { sign } from "https://cdn.skypack.dev/tweetnacl@v1.0.3?dts";
 import { json, serve, validateRequest } from "https://deno.land/x/sift@0.6.0/mod.ts";
-import { APIInteraction, InteractionType, APIChatInputApplicationCommandInteractionData, InteractionResponseType, RESTPatchAPIGuildRolePositionsJSONBody, ChannelType, OverwriteType } from "https://raw.githubusercontent.com/discordjs/discord-api-types/main/deno/v10.ts";
+import { APIInteraction, InteractionType, APIChatInputApplicationCommandInteractionData, InteractionResponseType, RESTPatchAPIGuildRolePositionsJSONBody, ChannelType, OverwriteType, APIInteractionResponseChannelMessageWithSource } from "https://raw.githubusercontent.com/discordjs/discord-api-types/main/deno/v10.ts";
 import { APIInteractionResponse } from "https://raw.githubusercontent.com/discordjs/discord-api-types/main/deno/payloads/v10/mod.ts";
 import { makeAuthenticatedRequest } from "./utils.ts";
 import { APIApplicationCommandInteractionDataStringOption } from "https://raw.githubusercontent.com/discordjs/discord-api-types/main/deno/payloads/v10/_interactions/applicationCommands.ts";
@@ -25,6 +25,22 @@ if (isNaN(rolePosition)) {
 
 export function hexToUint8Array(hex: string) {
     return new Uint8Array(hex.match(/.{1,2}/g)!.map((val) => parseInt(val, 16)));
+}
+
+export function generateErrorMessage(title: string, text: string): APIInteractionResponseChannelMessageWithSource {
+    return {
+        type: InteractionResponseType.ChannelMessageWithSource,
+        data: {
+            content: `An error occurred while ${title}`,
+            embeds: [
+                {
+                    title: "Error",
+                    description: text,
+                    color: 0xff0000,
+                },
+            ],
+        },
+    };
 }
 
 serve({
@@ -74,18 +90,18 @@ serve({
                     hoist: true,
                     mentionable: true,
                 };
-                const roleResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/roles`, "POST", rolePayload);
+                const roleResponse = await makeAuthenticatedRequest(`/guilds/${interaction.data.guild_id}/roles`, "POST", rolePayload);
 
                 if (roleResponse.status >= 400) {
-                    return json({ error: `Failed to create role: ${await roleResponse.text()}` }, { status: roleResponse.status });
+                    return json(generateErrorMessage("creating role", await roleResponse.text()));
                 }
 
                 const { id } = await roleResponse.json();
                 
                 const positionPayload: RESTPatchAPIGuildRolePositionsJSONBody = [{ id, position: rolePosition }];
-                const positionResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/roles/${id}/positions`, "PATCH", positionPayload);
+                const positionResponse = await makeAuthenticatedRequest(`/guilds/${interaction.data.guild_id}/roles/${id}/positions`, "PATCH", positionPayload);
                 if (positionResponse.status >= 400) {
-                    return json({ error: `Failed to set role position: ${await positionResponse.text()}` }, { status: positionResponse.status });
+                    return json(generateErrorMessage("updating role position", await positionResponse.text()));
                 }
 
                 const channelPayload: RESTPostAPIGuildChannelJSONBody = {
@@ -107,9 +123,9 @@ serve({
                         },
                     ],
                 };
-                const channelResponse = await makeAuthenticatedRequest(`/guilds/${interaction.guild_id}/channels`, "POST", channelPayload);
+                const channelResponse = await makeAuthenticatedRequest(`/guilds/${interaction.data.guild_id}/channels`, "POST", channelPayload);
                 if (channelResponse.status >= 400) {
-                    return json({ error: `Failed to create channel: ${await channelResponse.text()}` }, { status: channelResponse.status });
+                    return json(generateErrorMessage("creating channel", await channelResponse.text()));
                 }
 
                 const payload: APIInteractionResponse = {
